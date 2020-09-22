@@ -7,7 +7,9 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import CRUDweb.Responses.Responses;
 import CRUDweb.dao.UserDAO;
+import CRUDweb.helpers.Helpers;
 import CRUDweb.idao.UserDaoInterface;
 import CRUDweb.model.User;
 import express.http.request.Request;
@@ -23,36 +25,67 @@ public class UserController {
 	public void create(Request req, Response res) {
 		UserDaoInterface userDAO = new UserDAO();
 		Map<String, String> body = req.getBody();
-		String name = body.get("name");
 		String rfc = body.get("rfc");
+		if (!Helpers.validateRfc(rfc)) {
+			res.json(Responses.FailResponse("Invalid RFC"));
+		}
+		String name = body.get("name");
+		if (!Helpers.validateName(name)) {
+			res.json(Responses.FailResponse("Invalid Name"));
+		}
 		String city_id = body.get("city_id");
 		String age = body.get("age");
 		User newUser = new User(name, age, rfc, city_id);
 		Boolean created = userDAO.createUser(newUser);
 		if (created) {
-			res.send("User Created!");
-		} else {
-			res.sendStatus(Status._500);
-		}
+			JSONObject data = new JSONObject(newUser);
+			res.json(Responses.SuccessResponse(data));
+			return;
+		} 
+		res.json(Responses.FailResponse());
+		return;
 	}
 	
 	public void update(Request req, Response res) {
 		UserDaoInterface userDAO= new UserDAO();
 		String rfc = req.getParam("rfc");
+		if (!Helpers.validateRfc(rfc)) {
+			res.json(Responses.FailResponse("Invalid RFC"));
+			return;
+		}
 		Map<String, String> body = req.getBody();
 		String name = body.get("name");
+		if (!Helpers.validateName(name)) {
+			res.json(Responses.FailResponse("Invalid Name"));
+			return;
+		}
 		String city_id = body.get("city_id");
 		String age = body.get("age");
 		User newUser = new User(name, age, rfc, city_id);
-		userDAO.uptadeUserByRfc(newUser, rfc);
-		res.send("User updated");
+		Boolean updated = userDAO.uptadeUserByRfc(newUser, rfc);
+		if (updated) {
+			JSONObject data = new JSONObject(newUser);
+			res.json(Responses.SuccessResponse(data));
+			return;
+		} 
+		res.json(Responses.FailResponse());
+		return;
 	}
 	
 	public void delete(Request req, Response res) {
 		UserDaoInterface userDAO= new UserDAO();
 		String rfc = req.getParam("rfc");
-		userDAO.deleteUserByRfc(rfc);
-		res.send("User Deleted!");
+		if (!Helpers.validateRfc(rfc)) {
+			res.json(Responses.FailResponse("Invalid RFC"));
+			return;
+		}
+		Boolean deleted = userDAO.deleteUserByRfc(rfc);
+		if (deleted) {
+			res.json(Responses.SuccessResponse("User deleted!"));
+			return;
+		} 
+		res.json(Responses.FailResponse());
+		return;
 	}
 	
 	public void getAll(Request req, Response res){
@@ -68,21 +101,21 @@ public class UserController {
 			.put("rfc", users.get(i).getRfc());
 			usersList.put(current);
 		}
-		res.json(usersList);
+		res.json(Responses.SuccessResponse(usersList));
 	}
 
 	public void getUserByRfc(Request req, Response res) {
 		UserDaoInterface userDAO = new UserDAO();
 		String rfc = req.getParam("rfc");
 		User user = userDAO.getUserByRfc(rfc);
-		if (user == null) res.send("No user found");
+		if (user == null) res.json(Responses.FailResponse("User not found"));
 		else {
 			JSONObject userByRfc = new JSONObject()
 			.put("city_id", user.getcity_id())
 			.put("name", user.getname())
 			.put("age", user.getAge())
 			.put("rfc", user.getRfc());
-			res.json(userByRfc);	
+			res.json(Responses.SuccessResponse(userByRfc));
 		}
 	}
 }

@@ -54,18 +54,10 @@ public class UserDAO implements UserDaoInterface {
 			rs=statement.executeQuery(sql);
 			while (rs.next()) {
 				User c=new User();
-				// System.out.println(rs.getString(1));
-				// System.out.println(rs.getString(2));
-				// System.out.println(rs.getString(3));
-				// System.out.println(rs.getString(4));
 				c.setRfc(rs.getString(1));
 				c.setname(rs.getString(2));
 				c.setAge(rs.getString(3));
 				c.setcity_id(rs.getString(4));
-				// System.out.println(c.getname());
-				// System.out.println(c.getAge());
-				// System.out.println(c.getRfc());
-				// System.out.println(c.getcity_id());
 				users.add(c);
 			}
 			statement.close();
@@ -112,13 +104,13 @@ public class UserDAO implements UserDaoInterface {
 			conection=DBConnection.connect();
 			statement=conection.createStatement();
 			statement.execute(sql);
+			deleted = true;
 			statement.close();
 			conection.close();
 		} catch (SQLException e) {
 			System.out.println("Couldn't delete user");
 			e.printStackTrace();
 		}		
-		System.out.println("Hello");
 		return deleted;
 	}
 
